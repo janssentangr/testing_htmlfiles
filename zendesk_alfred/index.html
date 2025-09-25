@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zendesk Growth Story - Interactive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000000;
+            color: #FFFFFF;
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+        
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        
+        .bg-gradient {
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: radial-gradient(circle at 20% 50%, rgba(77, 212, 212, 0.3) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(77, 212, 212, 0.2) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 20%, rgba(77, 212, 212, 0.1) 0%, transparent 50%);
+            animation: gradientShift 20s ease-in-out infinite;
+        }
+        
+        @keyframes gradientShift {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            33% { transform: rotate(120deg) scale(1.1); }
+            66% { transform: rotate(240deg) scale(0.9); }
+        }
+        
+        /* Grid lines */
+        .grid-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(77, 212, 212, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(77, 212, 212, 0.03) 1px, transparent 1px);
+            background-size: 100px 100px;
+            animation: gridMove 10s linear infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(100px, 100px); }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 60px 40px;
+            position: relative;
+            z-index: 10;
+        }
+        
+        /* Hero Section with Glitch Effect */
+        .hero {
+            text-align: center;
+            margin-bottom: 100px;
+            position: relative;
+        }
+        
+        .hero h1 {
+            font-size: 88px;
+            font-weight: 900;
+            margin-bottom: 20px;
+            letter-spacing: -3px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .glitch {
+            position: relative;
+            color: #FFFFFF;
+            animation: glitchAnimation 2s infinite;
+        }
+        
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch::before {
+            animation: glitchBefore 0.5s infinite;
+            color: #4DD4D4;
+            z-index: -1;
+        }
+        
+        .glitch::after {
+            animation: glitchAfter 0.5s infinite;
+            color: #9FFFFF;
+            z-index: -1;
+        }
+        
+        @keyframes glitchBefore {
+            0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+            20% { clip-path: inset(20% 0 30% 0); transform: translate(-2px, 2px); }
+            40% { clip-path: inset(50% 0 20% 0); transform: translate(2px, -2px); }
+            60% { clip-path: inset(10% 0 60% 0); transform: translate(-1px, 1px); }
+            80% { clip-path: inset(80% 0 5% 0); transform: translate(1px, -1px); }
+        }
+        
+        @keyframes glitchAfter {
+            0%, 100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+            20% { clip-path: inset(60% 0 10% 0); transform: translate(2px, -2px); }
+            40% { clip-path: inset(20% 0 50% 0); transform: translate(-2px, 2px); }
+            60% { clip-path: inset(70% 0 15% 0); transform: translate(1px, -1px); }
+            80% { clip-path: inset(5% 0 80% 0); transform: translate(-1px, 1px); }
+        }
+        
+        .subtitle {
+            font-size: 28px;
+            background: linear-gradient(90deg, #4DD4D4, #9FFFFF, #4DD4D4);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shimmer 3s linear infinite;
+            font-weight: 400;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 0% center; }
+            100% { background-position: 200% center; }
+        }
+        
+        /* 3D Cards */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 40px;
+            margin-bottom: 100px;
+            perspective: 1000px;
+        }
+        
+        .metric-3d-card {
+            position: relative;
+            height: 280px;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        
+        .metric-3d-card:hover {
+            transform: rotateY(180deg);
+        }
+        
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 30px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 25px 50px -12px rgba(77, 212, 212, 0.25);
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #4DD4D4 0%, #3AAFAF 100%);
+            overflow: hidden;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #2A2A2A 0%, #000000 100%);
+            border: 2px solid #4DD4D4;
+            transform: rotateY(180deg);
+        }
+        
+        .card-front::before {
+            content: '';
+            position: absolute;
+            top: -100%;
+            left: -100%;
+            width: 300%;
+            height: 300%;
+            background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: rotate(0deg) translateX(-100%) translateY(-100%); }
+            100% { transform: rotate(360deg) translateX(100%) translateY(100%); }
+        }
+        
+        .metric-number {
+            font-size: 72px;
+            font-weight: 900;
+            color: #FFFFFF;
+            line-height: 1;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        
+        .metric-label {
+            font-size: 20px;
+            color: rgba(255,255,255,0.95);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .metric-detail {
+            font-size: 18px;
+            color: #4DD4D4;
+            text-align: center;
+            line-height: 1.6;
+        }
+        
+        /* Interactive Chart */
+        .chart-container {
+            background: rgba(255,255,255,0.02);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(77, 212, 212, 0.3);
+            border-radius: 30px;
+            padding: 60px;
+            margin-bottom: 100px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .chart-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #4DD4D4, transparent);
+            animation: scanline 3s linear infinite;
+        }
+        
+        @keyframes scanline {
+            0% { transform: translateY(0); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(600px); opacity: 0; }
+        }
+        
+        .chart-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: #FFFFFF;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .chart {
+            height: 400px;
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            margin-bottom: 40px;
+        }
+        
+        .bar-wrapper {
+            flex: 1;
+            max-width: 80px;
+            position: relative;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .bar-wrapper:hover {
+            transform: scale(1.05);
+        }
+        
+        .bar {
+            width: 60px;
+            background: linear-gradient(180deg, #9FFFFF 0%, #4DD4D4 100%);
+            border-radius: 10px 10px 0 0;
+            position: relative;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: growUp 1.5s ease-out forwards;
+            box-shadow: 0 -10px 40px rgba(77, 212, 212, 0.4);
+        }
+        
+        @keyframes growUp {
+            from {
+                height: 0;
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .bar-value {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 18px;
+            font-weight: 700;
+            color: #4DD4D4;
+            white-space: nowrap;
+            opacity: 0;
+            animation: fadeInUp 0.5s ease-out 1s forwards;
+        }
+        
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+        
+        .bar-label {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #999;
+            font-weight: 600;
+        }
+        
+        .bar-wrapper:nth-child(1) .bar { animation-delay: 0.1s; height: 30px; }
+        .bar-wrapper:nth-child(2) .bar { animation-delay: 0.2s; height: 80px; }
+        .bar-wrapper:nth-child(3) .bar { animation-delay: 0.3s; height: 120px; }
+        .bar-wrapper:nth-child(4) .bar { animation-delay: 0.4s; height: 180px; }
+        .bar-wrapper:nth-child(5) .bar { animation-delay: 0.5s; height: 240px; }
+        .bar-wrapper:nth-child(6) .bar { animation-delay: 0.6s; height: 300px; }
+        .bar-wrapper:nth-child(7) .bar { animation-delay: 0.7s; height: 360px; }
+        
+        /* Hover tooltip */
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #000000;
+            border: 1px solid #4DD4D4;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 10px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 100;
+            min-width: 200px;
+        }
+        
+        .bar-wrapper:hover .tooltip {
+            opacity: 1;
+        }
+        
+        .tooltip-title {
+            font-size: 14px;
+            color: #4DD4D4;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .tooltip-value {
+            font-size: 20px;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+        
+        /* Floating Stats */
+        .floating-stats {
+            display: flex;
+            justify-content: space-around;
+            margin: 100px 0;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+        
+        .float-stat {
+            text-align: center;
+            position: relative;
+            animation: float 3s ease-in-out infinite;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        
+        .float-stat:hover {
+            transform: scale(1.1);
+            animation-play-state: paused;
+        }
+        
+        .float-stat:nth-child(1) { animation-delay: 0s; }
+        .float-stat:nth-child(2) { animation-delay: 0.5s; }
+        .float-stat:nth-child(3) { animation-delay: 1s; }
+        .float-stat:nth-child(4) { animation-delay: 1.5s; }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .float-icon {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, rgba(77, 212, 212, 0.2) 0%, rgba(77, 212, 212, 0.05) 100%);
+            border: 2px solid #4DD4D4;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .float-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, rgba(77, 212, 212, 0.5) 0%, transparent 70%);
+            transition: all 0.5s ease;
+        }
+        
+        .float-stat:hover .float-icon::before {
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+        }
+        
+        .float-label {
+            font-size: 16px;
+            color: #999;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .float-value {
+            font-size: 36px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFFFFF 0%, #4DD4D4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        /* Success Message */
+        .success-section {
+            background: linear-gradient(135deg, rgba(77, 212, 212, 0.1) 0%, transparent 100%);
+            border: 2px solid #4DD4D4;
+            border-radius: 30px;
+            padding: 80px 60px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-top: 100px;
+        }
+        
+        .success-section::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, #4DD4D4, transparent, #4DD4D4);
+            border-radius: 30px;
+            opacity: 0;
+            animation: borderGlow 3s linear infinite;
+        }
+        
+        @keyframes borderGlow {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        
+        .success-title {
+            font-size: 48px;
+            font-weight: 700;
+            color: #4DD4D4;
+            margin-bottom: 30px;
+            position: relative;
+        }
+        
+        .success-text {
+            font-size: 20px;
+            line-height: 1.8;
+            color: rgba(255,255,255,0.9);
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+        }
+        
+        .highlight {
+            color: #4DD4D4;
+            font-weight: 700;
+        }
+        
+        /* Pulse button */
+        .cta-button {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 20px 60px;
+            background: linear-gradient(135deg, #4DD4D4 0%, #3AAFAF 100%);
+            border: none;
+            border-radius: 50px;
+            color: #FFFFFF;
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .cta-button:hover {
+            transform: scale(1.05);
+        }
+        
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300%;
+            height: 300%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation">
+        <div class="bg-gradient"></div>
+    </div>
+    <div class="grid-lines"></div>
+    
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1 class="glitch" data-text="ZENDESK">ZENDESK</h1>
+            <div class="subtitle">Automation Performance Dashboard</div>
+        </div>
+        
+        <!-- 3D Flip Cards -->
+        <div class="metrics-grid">
+            <div class="metric-3d-card">
+                <div class="card-face card-front">
+                    <div class="metric-number">7.3X</div>
+                    <div class="metric-label">Task Growth</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="metric-detail">
+                        Scaled from 9.6M to 70.1M tasks consumed over 6 months - exceptional automation velocity
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-3d-card">
+                <div class="card-face card-front">
+                    <div class="metric-number">5.7%</div>
+                    <div class="metric-label">Task Utilization</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="metric-detail">
+                        Up from 0.8% in March - showing massive efficiency improvements in automation usage
+                    </div>
+                </div>
+            </div>
+            
+            <div class="metric-3d-card">
+                <div class="card-face card-front">
+                    <div class="metric-number">78%</div>
+                    <div class="metric-label">Complex Workflows</div>
+                </div>
+                <div class="card-face card-back">
+                    <div class="metric-detail">
+                        157 of 201 workflows are medium-high complexity, demonstrating sophisticated automation
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Interactive Chart -->
+        <div class="chart-container">
+            <h2 class="chart-title">Weekly Snapshot Evolution</h2>
+            <div class="chart">
+                <div class="bar-wrapper">
+                    <div class="tooltip">
+                        <div class="tooltip-title">Week 10 - March</div>
+                        <div class="tooltip-value">9.6M tasks</div>
+                    </div>
+                    <div class="bar-value">9.6M</div>
+                    <div class="bar"></div>
+                    <div class="bar-label">MAR</div>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="tooltip">
+                        <div class="tooltip-title">Week 16 - April</div>
+                        <div class="tooltip-value">22.2M tasks</div>
+                    </div>
+                    <div class="bar-value">22.2M</div>
+                    <div class="bar"></div>
+                    <div class="bar-label">APR</div>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="tooltip">
+                        <div class="tooltip-title">Week 20 - May</div>
+                        <div class="tooltip-value">31.0M tasks</div>
+                    </div>
+                    <div class="bar-value">31.0M</div>
+                    <div class="bar"></div>
+                    <div class="bar-label">MAY</div>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="tooltip">
+                        <div class="tooltip-title">Week 26 - June</div>
+                        <div class="tooltip-value">44.8M tasks</div>
+                    </div>
+                    <div class="bar-value">44.8M</div>
+                    <div class="bar"></div>
+                    <div class="bar-label">JUN</div>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="tooltip">
+                        <div class="tooltip-title">Week 30 - July</div>
+                        <div class="tooltip-value">53.5M tasks</div>
+                    </div>
+                    <div class="bar-value">53.5M</div>
+                    <div class="bar"></div>
+                    <div class="bar-label">JUL</div>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="tooltip">
+                        <div class="tooltip-title">Week 35 - August</div>
+                        <div class="tooltip-value">61.2M tasks</div>
+                    </div>
+                    <div class="bar-value">61.2M</div>
+                    <div class="bar"></div>
+                    <div class="bar-label">AUG</div>
+                </div>
+                <div class="bar-wrapper">
+                    <div class="tooltip">
+                        <div class="tooltip-title">Week 39 - September</div>
+                        <div class="tooltip-value">70.1M tasks</div>
+                    </div>
+                    <div class="bar-value">70.1M</div>
+                    <div class="bar"></div>
+                    <div class="bar-label">SEP</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Floating Stats -->
+        <div class="floating-stats">
+            <div class="float-stat">
+                <div class="float-icon">📊</div>
+                <div class="float-label">Active Recipes</div>
+                <div class="float-value">680</div>
+            </div>
+            <div class="float-stat">
+                <div class="float-icon">🔌</div>
+                <div class="float-label">Connections</div>
+                <div class="float-value">756</div>
+            </div>
+            <div class="float-stat">
+                <div class="float-icon">⚡</div>
+                <div class="float-label">Weekly Snapshot</div>
+                <div class="float-value">W39</div>
+            </div>
+            <div class="float-stat">
+                <div class="float-icon">🏆</div>
+                <div class="float-label">Status</div>
+                <div class="float-value">Champion</div>
+            </div>
+        </div>
+        
+        <!-- Success Section -->
+        <div class="success-section">
+            <div class="success-title">Key Insights</div>
+            <div class="success-text">
+                Zendesk demonstrates <span class="highlight">exceptional automation maturity</span> with weekly snapshots showing 
+                consistent growth. Task consumption increased <span class="highlight">7.3X</span> from Week 10 to Week 39, 
+                while maintaining recipe efficiency. Their focus on <span class="highlight">business-critical applications</span> 
+                (Salesforce, NetSuite, Snowflake) and <span class="highlight">78% complex workflow rate</span> 
+                positions them as a best-in-class automation customer.
+            </div>
+            <button class="cta-button">View Details</button>
+        </div>
+    </div>
+    
+    <script>
+        // Add interactive hover effects
+        document.querySelectorAll('.metric-3d-card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'rotateY(180deg) scale(1.05)';
+            });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'rotateY(0) scale(1)';
+            });
+        });
+        
+        // Add click animation to bars
+        document.querySelectorAll('.bar-wrapper').forEach((bar, index) => {
+            bar.addEventListener('click', () => {
+                bar.style.transform = 'scale(1.1)';
+                setTimeout(() => {
+                    bar.style.transform = 'scale(1)';
+                }, 300);
+                
+                // Create ripple effect
+                const ripple = document.createElement('div');
+                ripple.style.position = 'absolute';
+                ripple.style.width = '20px';
+                ripple.style.height = '20px';
+                ripple.style.background = 'radial-gradient(circle, rgba(77,212,212,0.8) 0%, transparent 70%)';
+                ripple.style.borderRadius = '50%';
+                ripple.style.bottom = '0';
+                ripple.style.left = '50%';
+                ripple.style.transform = 'translate(-50%, 0)';
+                ripple.style.animation = 'rippleOut 0.6s ease-out';
+                bar.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+        
+        // Add ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes rippleOut {
+                to {
+                    width: 200px;
+                    height: 200px;
+                    opacity: 0;
+                    transform: translate(-50%, -50%);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Add number counting animation on scroll
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const target = entry.target;
+                    const endValue = target.textContent;
+                    if (endValue.includes('X')) {
+                        // Animate multiplier values
+                        let current = 0;
+                        const end = parseFloat(endValue);
+                        const increment = end / 30;
+                        const timer = setInterval(() => {
+                            current += increment;
+                            if (current >= end) {
+                                target.textContent = endValue;
+                                clearInterval(timer);
+                            } else {
+                                target.textContent = current.toFixed(1) + 'X';
+                            }
+                        }, 50);
+                    }
+                    observer.unobserve(target);
+                }
+            });
+        });
+        
+        document.querySelectorAll('.metric-number').forEach(el => {
+            observer.observe(el);
+        });
+    </script>
+</body>
+</html>
