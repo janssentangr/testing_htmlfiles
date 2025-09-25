@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zendesk Growth Story Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: fadeInDown 0.8s ease;
+        }
+        
+        .header p {
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            transform: translateY(0);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.8s ease forwards;
+            opacity: 0;
+        }
+        
+        .metric-card:nth-child(1) { animation-delay: 0.1s; }
+        .metric-card:nth-child(2) { animation-delay: 0.2s; }
+        .metric-card:nth-child(3) { animation-delay: 0.3s; }
+        .metric-card:nth-child(4) { animation-delay: 0.4s; }
+        .metric-card:nth-child(5) { animation-delay: 0.5s; }
+        
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .metric-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .metric-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .metric-trend {
+            font-size: 0.8em;
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+        
+        .charts-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .chart-box {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 1s ease forwards;
+            opacity: 0;
+        }
+        
+        .chart-box:nth-child(1) { animation-delay: 0.6s; }
+        .chart-box:nth-child(2) { animation-delay: 0.7s; }
+        .chart-box:nth-child(3) { animation-delay: 0.8s; }
+        .chart-box:nth-child(4) { animation-delay: 0.9s; }
+        
+        .chart-title {
+            font-size: 1.3em;
+            color: #2d3748;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .insights-section {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+            animation: fadeIn 1.2s ease forwards;
+            opacity: 0;
+        }
+        
+        .insights-title {
+            color: #2d3748;
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+        
+        .insight-item {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .insight-icon {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            border-radius: 50%;
+            color: white;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+        }
+        
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        .period-selector {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .period-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 5px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+        
+        .period-btn:hover {
+            background: #764ba2;
+            transform: scale(1.05);
+        }
+        
+        .period-btn.active {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>🚀 Zendesk's Growth Journey with Workato</h1>
+            <p>Account Health & Automation Excellence Dashboard</p>
+        </div>
+        
+        <div class="period-selector">
+            <button class="period-btn active" onclick="updatePeriod('ytd')">Year to Date</button>
+            <button class="period-btn" onclick="updatePeriod('q3')">Q3 2025</button>
+            <button class="period-btn" onclick="updatePeriod('q2')">Q2 2025</button>
+            <button class="period-btn" onclick="updatePeriod('q1')">Q1 2025</button>
+        </div>
+        
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value" id="activeRecipes">680</div>
+                <div class="metric-label">Active Recipes</div>
+                <div class="metric-trend">↑ 94% growth from January</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="taskUtil">5.7%</div>
+                <div class="metric-label">Task Utilization</div>
+                <div class="metric-trend">70M+ tasks consumed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="workflows">201</div>
+                <div class="metric-label">Total Workflows</div>
+                <div class="metric-trend">78% med/high complexity</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="connectedApps">79</div>
+                <div class="metric-label">Connected Apps</div>
+                <div class="metric-trend">37 actively used</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value" id="healthScore">5.75</div>
+                <div class="metric-label">Health Score</div>
+                <div class="metric-trend">Stable at "Good" level</div>
+            </div>
+        </div>
+        
+        <div class="charts-container">
+            <div class="chart-box">
+                <h3 class="chart-title">📈 Recipe Growth Trajectory</h3>
+                <canvas id="recipeGrowth"></canvas>
+            </div>
+            
+            <div class="chart-box">
+                <h3 class="chart-title">⚡ Task Consumption Trends</h3>
+                <canvas id="taskConsumption"></canvas>
+            </div>
+            
+            <div class="chart-box">
+                <h3 class="chart-title">🎯 Automation Maturity</h3>
+                <canvas id="automationMaturity"></canvas>
+            </div>
+            
+            <div class="chart-box">
+                <h3 class="chart-title">💪 Health Score Evolution</h3>
+                <canvas id="healthTrend"></canvas>
+            </div>
+        </div>
+        
+        <div class="insights-section">
+            <h2 class="insights-title">🔍 Key Growth Insights</h2>
+            
+            <div class="insight-item">
+                <span class="insight-icon">📊</span>
+                <strong>Explosive Recipe Growth:</strong> Zendesk has doubled their active recipes from 350 to 680 in 2025, demonstrating strong adoption and expansion of automation capabilities.
+            </div>
+            
+            <div class="insight-item">
+                <span class="insight-icon">🔧</span>
+                <strong>Complex Automation Leader:</strong> With 78% of workflows classified as medium/high complexity and an automation index of 0.22, Zendesk is tackling sophisticated business processes.
+            </div>
+            
+            <div class="insight-item">
+                <span class="insight-icon">🏢</span>
+                <strong>Department Coverage:</strong> Active in 5 departments with particular strength in Order to Cash (O2C) and Data Ops, showing enterprise-wide adoption.
+            </div>
+            
+            <div class="insight-item">
+                <span class="insight-icon">🎯</span>
+                <strong>Strategic Apps Integration:</strong> Core business systems (Salesforce, NetSuite, Snowflake, Zendesk) are deeply integrated, with OpenAI adoption showing AI/ML initiatives.
+            </div>
+            
+            <div class="insight-item">
+                <span class="insight-icon">📈</span>
+                <strong>Consistent Performance:</strong> Maintaining "Champion" RFM status throughout 2025 with high recipe activity and stable health scores indicates mature automation practices.
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Chart configurations
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial';
+        
+        // Recipe Growth Chart
+        const recipeCtx = document.getElementById('recipeGrowth').getContext('2d');
+        const recipeChart = new Chart(recipeCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                datasets: [{
+                    label: 'Active Recipes',
+                    data: [350, 445, 461, 445, 407, 428, 410, 404, 680],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }, {
+                    label: 'Recipe Limit',
+                    data: [350, 350, 350, 350, 350, 350, 350, 350, 350],
+                    borderColor: '#ff6b6b',
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 300
+                    }
+                }
+            }
+        });
+        
+        // Task Consumption Chart
+        const taskCtx = document.getElementById('taskConsumption').getContext('2d');
+        const taskChart = new Chart(taskCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Q1 2025', 'Q2 2025', 'Q3 2025', 'Sep 2025'],
+                datasets: [{
+                    label: 'Tasks Consumed (Millions)',
+                    data: [65, 41, 52, 70],
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(118, 75, 162, 0.8)'
+                    ],
+                    borderColor: [
+                        '#667eea',
+                        '#667eea',
+                        '#667eea',
+                        '#764ba2'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Tasks (Millions)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Automation Maturity Radar
+        const maturityCtx = document.getElementById('automationMaturity').getContext('2d');
+        const maturityChart = new Chart(maturityCtx, {
+            type: 'radar',
+            data: {
+                labels: ['iPaaS', 'API Management', 'Bot/RPA', 'ETL/ELT', 'Workflow Automation'],
+                datasets: [{
+                    label: 'Current Adoption',
+                    data: [100, 100, 100, 100, 100],
+                    backgroundColor: 'rgba(102, 126, 234, 0.3)',
+                    borderColor: '#667eea',
+                    pointBackgroundColor: '#667eea',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: '#667eea'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Health Score Trend
+        const healthCtx = document.getElementById('healthTrend').getContext('2d');
+        const healthChart = new Chart(healthCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                datasets: [{
+                    label: 'Overall Health Score',
+                    data: [5.925, 5.450, 5.925, 5.575, 5.225, 5.750, 5.750, 5.875, 5.750],
+                    borderColor: '#48bb78',
+                    backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 5,
+                    pointHoverRadius: 7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 4,
+                        max: 7,
+                        title: {
+                            display: true,
+                            text: 'Score (out of 10)'
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Period selector functionality
+        function updatePeriod(period) {
+            // Update active button
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update metrics based on period
+            if (period === 'q3') {
+                document.getElementById('activeRecipes').textContent = '415';
+                document.getElementById('taskUtil').textContent = '5.0%';
+                document.getElementById('workflows').textContent = '205';
+            } else if (period === 'q2') {
+                document.getElementById('activeRecipes').textContent = '430';
+                document.getElementById('taskUtil').textContent = '3.5%';
+                document.getElementById('workflows').textContent = '221';
+            } else if (period === 'q1') {
+                document.getElementById('activeRecipes').textContent = '457';
+                document.getElementById('taskUtil').textContent = '2.8%';
+                document.getElementById('workflows').textContent = '214';
+            } else {
+                document.getElementById('activeRecipes').textContent = '680';
+                document.getElementById('taskUtil').textContent = '5.7%';
+                document.getElementById('workflows').textContent = '201';
+            }
+        }
+    </script>
+</body>
+</html>
