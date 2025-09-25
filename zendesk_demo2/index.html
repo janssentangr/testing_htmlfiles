@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zendesk Growth Story Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 800px;
+            overflow: hidden;
+            padding: 10px;
+        }
+        
+        .dashboard {
+            max-width: 1600px;
+            height: 780px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        
+        .dashboard::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .dashboard::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .dashboard::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+        }
+        
+        .header h1 {
+            color: #2d3748;
+            font-size: 1.8em;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #718096;
+            font-size: 0.9em;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            height: calc(100% - 70px);
+        }
+        
+        .left-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .metric-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .metric-value {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 2px;
+        }
+        
+        .metric-label {
+            font-size: 0.75em;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-trend {
+            font-size: 0.65em;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        
+        .insights-box {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 15px;
+            border-radius: 10px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        
+        .insights-title {
+            color: #2d3748;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+        
+        .insight-item {
+            background: white;
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            border-left: 3px solid #667eea;
+            font-size: 0.85em;
+            line-height: 1.4;
+        }
+        
+        .right-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        .chart-box {
+            background: white;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chart-title {
+            font-size: 1em;
+            color: #2d3748;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .chart-container {
+            flex-grow: 1;
+            position: relative;
+            min-height: 0;
+        }
+        
+        .period-selector {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            gap: 5px;
+            z-index: 10;
+        }
+        
+        .period-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 11px;
+        }
+        
+        .period-btn:hover {
+            background: #764ba2;
+        }
+        
+        .period-btn.active {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="header">
+            <h1>Zendesk's Growth Journey with Workato</h1>
+            <p>Account Health & Automation Excellence Dashboard</p>
+        </div>
+        
+        <div class="period-selector">
+            <button class="period-btn active" onclick="updatePeriod('ytd')">YTD</button>
+            <button class="period-btn" onclick="updatePeriod('q3')">Q3</button>
+            <button class="period-btn" onclick="updatePeriod('q2')">Q2</button>
+            <button class="period-btn" onclick="updatePeriod('q1')">Q1</button>
+        </div>
+        
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="activeRecipes">680</div>
+                        <div class="metric-label">Active Recipes</div>
+                        <div class="metric-trend">↑ 94% from Jan</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="taskUtil">5.7%</div>
+                        <div class="metric-label">Task Utilization</div>
+                        <div class="metric-trend">70M tasks</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="workflows">201</div>
+                        <div class="metric-label">Workflows</div>
+                        <div class="metric-trend">78% complex</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value" id="healthScore">5.75</div>
+                        <div class="metric-label">Health Score</div>
+                        <div class="metric-trend">Champion status</div>
+                    </div>
+                </div>
+                
+                <div class="insights-box">
+                    <h3 class="insights-title">Key Insights</h3>
+                    <div class="insight-item">
+                        <strong>94% Recipe Growth:</strong> Doubled active recipes from 350 to 680 in 2025
+                    </div>
+                    <div class="insight-item">
+                        <strong>Complex Automation:</strong> 78% medium/high complexity workflows
+                    </div>
+                    <div class="insight-item">
+                        <strong>5 Departments Active:</strong> Strong in O2C and Data Ops
+                    </div>
+                    <div class="insight-item">
+                        <strong>Core Stack:</strong> Salesforce, NetSuite, Snowflake, Zendesk integrated
+                    </div>
+                    <div class="insight-item">
+                        <strong>AI Adoption:</strong> OpenAI integration showing innovation
+                    </div>
+                    <div class="insight-item">
+                        <strong>Massive Headroom:</strong> Using only 5.7% of 1.2B task limit
+                    </div>
+                    <div class="insight-item">
+                        <strong>Champion Status:</strong> Consistent top-tier RFM segment
+                    </div>
+                </div>
+            </div>
+            
+            <div class="right-panel">
+                <div class="chart-box">
+                    <h3 class="chart-title">Recipe Growth Trajectory</h3>
+                    <div class="chart-container">
+                        <canvas id="recipeGrowth"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <h3 class="chart-title">Task Consumption (Millions)</h3>
+                    <div class="chart-container">
+                        <canvas id="taskConsumption"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <h3 class="chart-title">Automation Capabilities</h3>
+                    <div class="chart-container">
+                        <canvas id="automationMaturity"></canvas>
+                    </div>
+                </div>
+                
+                <div class="chart-box">
+                    <h3 class="chart-title">Health Score Evolution</h3>
+                    <div class="chart-container">
+                        <canvas id="healthTrend"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Chart configurations
+        Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial';
+        Chart.defaults.font.size = 10;
+        
+        // Recipe Growth Chart
+        const recipeCtx = document.getElementById('recipeGrowth').getContext('2d');
+        const recipeChart = new Chart(recipeCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                datasets: [{
+                    label: 'Active Recipes',
+                    data: [350, 445, 461, 445, 407, 428, 410, 404, 680],
+                    borderColor: '#667eea',
+                    backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }, {
+                    label: 'Limit',
+                    data: [350, 350, 350, 350, 350, 350, 350, 350, 350],
+                    borderColor: '#ff6b6b',
+                    borderDash: [5, 5],
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            padding: 8
+                        }
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 300,
+                        ticks: {
+                            font: {
+                                size: 9
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 9
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Task Consumption Chart
+        const taskCtx = document.getElementById('taskConsumption').getContext('2d');
+        const taskChart = new Chart(taskCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Q1', 'Q2', 'Q3', 'Sep'],
+                datasets: [{
+                    label: 'Tasks (M)',
+                    data: [65, 41, 52, 70],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: '#667eea',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            font: {
+                                size: 9
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 9
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Automation Maturity Radar
+        const maturityCtx = document.getElementById('automationMaturity').getContext('2d');
+        const maturityChart = new Chart(maturityCtx, {
+            type: 'radar',
+            data: {
+                labels: ['iPaaS', 'API', 'Bot', 'ETL', 'WFA'],
+                datasets: [{
+                    label: 'Adoption',
+                    data: [100, 100, 100, 100, 100],
+                    backgroundColor: 'rgba(102, 126, 234, 0.3)',
+                    borderColor: '#667eea',
+                    pointBackgroundColor: '#667eea',
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 50,
+                            font: {
+                                size: 8
+                            }
+                        },
+                        pointLabels: {
+                            font: {
+                                size: 9
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Health Score Trend
+        const healthCtx = document.getElementById('healthTrend').getContext('2d');
+        const healthChart = new Chart(healthCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'],
+                datasets: [{
+                    label: 'Health Score',
+                    data: [5.925, 5.450, 5.925, 5.575, 5.225, 5.750, 5.750, 5.875, 5.750],
+                    borderColor: '#48bb78',
+                    backgroundColor: 'rgba(72, 187, 120, 0.1)',
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 3,
+                    pointHoverRadius: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        min: 4,
+                        max: 7,
+                        ticks: {
+                            font: {
+                                size: 9
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            font: {
+                                size: 9
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Period selector functionality
+        function updatePeriod(period) {
+            // Update active button
+            document.querySelectorAll('.period-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Update metrics based on period
+            if (period === 'q3') {
+                document.getElementById('activeRecipes').textContent = '415';
+                document.getElementById('taskUtil').textContent = '5.0%';
+                document.getElementById('workflows').textContent = '205';
+                document.getElementById('healthScore').textContent = '5.88';
+            } else if (period === 'q2') {
+                document.getElementById('activeRecipes').textContent = '430';
+                document.getElementById('taskUtil').textContent = '3.5%';
+                document.getElementById('workflows').textContent = '221';
+                document.getElementById('healthScore').textContent = '5.75';
+            } else if (period === 'q1') {
+                document.getElementById('activeRecipes').textContent = '457';
+                document.getElementById('taskUtil').textContent = '2.8%';
+                document.getElementById('workflows').textContent = '214';
+                document.getElementById('healthScore').textContent = '5.70';
+            } else {
+                document.getElementById('activeRecipes').textContent = '680';
+                document.getElementById('taskUtil').textContent = '5.7%';
+                document.getElementById('workflows').textContent = '201';
+                document.getElementById('healthScore').textContent = '5.75';
+            }
+        }
+    </script>
+</body>
+</html>
